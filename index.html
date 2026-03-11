@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>recodeaz — Sayt & Tətbiq Hazırlanması</title>
+<meta name="description" content="Azərbaycanda veb sayt və mobil tətbiq hazırlanması. Sürətli, keyfiyyətli, əlçatan qiymət.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green: #00ff88;
+  --green-dim: rgba(0,255,136,0.12);
+  --green-glow: rgba(0,255,136,0.04);
+  --bg: #020204;
+  --surface: #08080f;
+  --border: #111120;
+  --border2: #1a1a30;
+  --text: #c8c8d8;
+  --muted: #444458;
+  --white: #f0f0ff;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CURSOR ── */
+.cursor {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s;
+  box-shadow: 0 0 12px var(--green);
+}
+.cursor-ring {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(0,255,136,0.4);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease-out, width 0.3s, height 0.3s;
+}
+
+/* ── GRID BG ── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--green-glow) 1px, transparent 1px),
+    linear-gradient(90deg, var(--green-glow) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+.grid-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,255,136,0.04) 0%, transparent 70%);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid transparent;
+  transition: all 0.4s;
+  backdrop-filter: blur(0px);
+}
+nav.scrolled {
+  background: rgba(2,2,4,0.9);
+  border-bottom-color: var(--border);
+  backdrop-filter: blur(20px);
+}
+.logo {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--white);
+}
+.logo span { color: var(--green); }
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--green); }
+.nav-cta {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 10px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: none;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-cta:hover {
+  background: var(--green);
+  color: #000;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 60px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.hero-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+.hero-eyebrow::before { content: '> '; }
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(42px, 6vw, 88px);
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--white);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+.hero-title .accent { color: var(--green); }
+.hero-title .dim { color: var(--muted); }
+
+.hero-sub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 2;
+  max-width: 480px;
+  margin-bottom: 56px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+.btn-primary {
+  background: var(--green);
+  color: #000;
+  padding: 16px 36px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-decoration: none;
+  cursor: none;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+.btn-primary:hover::after { transform: translateX(0); }
+
+.btn-secondary {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  cursor: none;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-secondary:hover { color: var(--white); }
+.btn-secondary::before { content: '→'; color: var(--green); }
+
+.hero-stats {
+  position: absolute;
+  right: 60px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s 1s forwards;
+}
+.stat { text-align: right; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+}
+.stat-num span { color: var(--green); }
+.stat-label { font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-top: 4px; }
+
+/* ── TICKER ── */
+.ticker {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+.ticker-inner {
+  display: flex;
+  gap: 60px;
+  white-space: nowrap;
+  animation: ticker 20s linear infinite;
+}
+.ticker-item {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.ticker-item::before { content: '◆'; color: var(--green); font-size: 6px; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── SECTION BASE ── */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 120px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.section-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.section-label::before { content: '// '; }
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 3.5vw, 48px);
+  font-weight: 800;
+  color: var(--white);
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+.section-sub {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 2;
+  max-width: 440px;
+  margin-bottom: 64px;
+}
+
+/* ── SERVICES ── */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.service-card {
+  background: var(--bg);
+  padding: 40px 32px;
+  transition: background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: var(--green);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+.service-card:hover { background: var(--surface); }
+.service-card:hover::before { transform: scaleX(1); }
+
+.service-icon {
+  font-size: 28px;
+  margin-bottom: 24px;
+  display: block;
+}
+.service-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.service-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 2;
+  margin-bottom: 24px;
+}
+.service-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.service-features li {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.service-features li::before { content: '→'; color: var(--green); }
+
+/* ── PROCESS ── */
+.process-section { background: var(--surface); width: 100vw; margin-left: calc(-50vw + 50%); padding: 120px 0; }
+.process-inner { max-width: 1200px; margin: 0 auto; padding: 0 60px; }
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+  margin-top: 64px;
+}
+.process-steps::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), var(--green), var(--border2), transparent);
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 0 16px;
+}
+.step-num {
+  width: 56px; height: 56px;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  position: relative;
+  z-index: 1;
+}
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+}
+.step-desc { font-size: 10px; color: var(--muted); line-height: 1.8; }
+
+/* ── PRICING ── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.price-card {
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.price-card:hover {
+  border-color: var(--green);
+  transform: translateY(-4px);
+}
+.price-card.featured {
+  border-color: var(--green);
+  background: rgba(0,255,136,0.03);
+}
+.price-badge {
+  position: absolute;
+  top: -1px; right: 24px;
+  background: var(--green);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+}
+.price-tier {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.price-amount {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+}
+.price-amount span { font-size: 14px; color: var(--muted); }
+.price-desc { font-size: 11px; color: var(--muted); line-height: 1.8; }
+.price-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.price-features li {
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+.price-features li::before { content: '✓'; color: var(--green); flex-shrink: 0; }
+.price-features li.dim { color: var(--muted); }
+.price-features li.dim::before { content: '–'; color: var(--muted); }
+.price-cta {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 2px;
+  transition: all 0.2s;
+  cursor: none;
+}
+.price-cta:hover, .price-card.featured .price-cta {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
+
+/* ── FAQ ── */
+.faq-list { display: flex; flex-direction: column; gap: 0; }
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.faq-q {
+  padding: 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: none;
+  font-size: 13px;
+  color: var(--white);
+  transition: color 0.2s;
+  user-select: none;
+}
+.faq-q:hover { color: var(--green); }
+.faq-q .icon {
+  color: var(--green);
+  font-size: 18px;
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.faq-item.open .faq-q .icon { transform: rotate(45deg); }
+.faq-a {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 2;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s;
+}
+.faq-item.open .faq-a {
+  max-height: 200px;
+  padding-bottom: 24px;
+}
+
+/* ── CONTACT ── */
+.contact-section {
+  background: var(--surface);
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  padding: 120px 0;
+}
+.contact-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label { font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+.form-input, .form-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--white);
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--green); }
+.form-textarea { height: 120px; resize: none; }
+.form-submit {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: none;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+.form-submit:hover { opacity: 0.85; }
+
+.contact-info { display: flex; flex-direction: column; gap: 40px; }
+.contact-item { display: flex; flex-direction: column; gap: 8px; }
+.contact-item-label { font-size: 9px; letter-spacing: 3px; color: var(--green); text-transform: uppercase; }
+.contact-item-value {
+  font-size: 14px;
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.contact-item-value:hover { color: var(--green); }
+.contact-note { font-size: 11px; color: var(--muted); line-height: 2; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 40px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+}
+.footer-copy { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+.footer-logo { font-size: 12px; font-weight: 800; color: var(--muted); }
+.footer-logo span { color: var(--green); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  nav { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .hero { padding: 100px 24px 60px; }
+  .hero-stats { display: none; }
+  section { padding: 80px 24px; }
+  .services-grid, .pricing-grid { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .process-steps::before { display: none; }
+  .contact-inner { grid-template-columns: 1fr; gap: 40px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; padding: 32px 24px; }
+  .process-section, .contact-section { width: 100%; margin-left: 0; }
+  .process-inner, .contact-inner { padding: 0 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="logo"><span>{</span>re<span>}</span>codeaz</div>
+  <ul class="nav-links">
+    <li><a href="#services">Xidmətlər</a></li>
+    <li><a href="#process">Proses</a></li>
+    <li><a href="#pricing">Qiymətlər</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Əlaqə →</a>
+</nav>
+
+<!-- HERO -->
+<div style="position:relative;z-index:1;">
+<div class="hero">
+  <div class="hero-eyebrow">Azərbaycan · Veb & Mobil İnkişaf</div>
+  <h1 class="hero-title">
+    Biznesinizi<br>
+    <span class="accent">rəqəmsal</span><br>
+    <span class="dim">aləmə çıxarırıq</span>
+  </h1>
+  <p class="hero-sub">
+    Veb sayt və mobil tətbiq hazırlanması.<br>
+    Sürətli çatdırılma. Keyfiyyətli kod.<br>
+    Sifariş sonrası davamlı dəstək.
+  </p>
+  <div class="hero-actions">
+    <a href="#contact" class="btn-primary">MƏSLƏHƏTSİZ BAŞLA</a>
+    <a href="#services" class="btn-secondary">Xidmətlərə bax</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">3<span>gün</span></div>
+      <div class="stat-label">Orta çatdırılma</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100<span>%</span></div>
+      <div class="stat-label">Müştəri məmnuniyyəti</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24<span>/7</span></div>
+      <div class="stat-label">Texniki dəstək</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">Veb Sayt Hazırlanması</span>
+    <span class="ticker-item">Mobil Tətbiq İnkişafı</span>
+    <span class="ticker-item">UI/UX Dizayn</span>
+    <span class="ticker-item">SEO Optimallaşdırma</span>
+    <span class="ticker-item">Davamlı Texniki Dəstək</span>
+    <span class="ticker-item">E-ticarət Həlləri</span>
+    <span class="ticker-item">Veb Sayt Hazırlanması</span>
+    <span class="ticker-item">Mobil Tətbiq İnkişafı</span>
+    <span class="ticker-item">UI/UX Dizayn</span>
+    <span class="ticker-item">SEO Optimallaşdırma</span>
+    <span class="ticker-item">Davamlı Texniki Dəstək</span>
+    <span class="ticker-item">E-ticarət Həlləri</span>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-label reveal">Xidmətlər</div>
+  <h2 class="section-title reveal">Nə edirik?</h2>
+  <p class="section-sub reveal">Hər biznesin ehtiyacına uyğun rəqəmsal həllər hazırlayırıq.</p>
+
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <span class="service-icon">🌐</span>
+      <div class="service-name">Veb Sayt</div>
+      <p class="service-desc">Biznesinizi təmsil edən, müştəri cəlb edən peşəkar saytlar.</p>
+      <ul class="service-features">
+        <li>Tam responsiv dizayn</li>
+        <li>Sürətli yüklənmə</li>
+        <li>SEO optimallaşdırma</li>
+        <li>İnzibatçı paneli</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">📱</span>
+      <div class="service-name">Mobil Tətbiq</div>
+      <p class="service-desc">iOS və Android üçün eyni vaxtda işləyən cross-platform tətbiqlər.</p>
+      <ul class="service-features">
+        <li>iOS & Android dəstəyi</li>
+        <li>Sürətli performans</li>
+        <li>Push bildirişlər</li>
+        <li>Oflayn rejim</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">🛒</span>
+      <div class="service-name">E-ticarət</div>
+      <p class="service-desc">Onlayn satış üçün tam həll — kataloq, ödəniş, sifarişlər.</p>
+      <ul class="service-features">
+        <li>Məhsul kataloqu</li>
+        <li>Ödəniş inteqrasiyası</li>
+        <li>Sifariş idarəetməsi</li>
+        <li>Müştəri paneli</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<div class="process-section">
+  <div class="process-inner">
+    <div class="section-label reveal">Proses</div>
+    <h2 class="section-title reveal">Necə işləyirik?</h2>
+    <p class="section-sub reveal">Şəffaf proses, aydın müddət. Sürpriz yoxdur.</p>
+
+    <div class="process-steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Görüş</div>
+        <p class="step-desc">Tələblərinizi dinləyib, ən uyğun həlli birlikdə müəyyən edirik.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">Dizayn</div>
+        <p class="step-desc">Vizual maketi hazırlayıb, təsdiq üçün sizə göstəririk.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">İnkişaf</div>
+        <p class="step-desc">Kodu yazıb, test edirik. Hər mərhələdə sizi məlumatlandırırıq.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">Dəstək</div>
+        <p class="step-desc">Layihə bitdikdən sonra da yanınızdayıq. Davamlı texniki dəstək.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label reveal">Qiymətlər</div>
+  <h2 class="section-title reveal">Şəffaf qiymət siyasəti</h2>
+  <p class="section-sub reveal">Gizli ödənişlər yoxdur. Başlanğıcda nə deyirik — onu ödəyirsiniz.</p>
+
+  <div class="pricing-grid reveal">
+    <div class="price-card">
+      <div class="price-tier">Başlanğıc</div>
+      <div class="price-amount">400 <span>AZN-dən</span></div>
+      <p class="price-desc">Kiçik bizneslər üçün peşəkar sayt.</p>
+      <ul class="price-features">
+        <li>5 səhifəyə qədər</li>
+        <li>Mobil uyğun dizayn</li>
+        <li>Əlaqə formu</li>
+        <li>1 aylıq dəstək</li>
+        <li class="dim">İnzibatçı paneli</li>
+        <li class="dim">Ödəniş inteqrasiyası</li>
+      </ul>
+      <a href="#contact" class="price-cta">Başla →</a>
+    </div>
+
+    <div class="price-card featured">
+      <div class="price-badge">MƏŞHURdur</div>
+      <div class="price-tier">Biznes</div>
+      <div class="price-amount">1200 <span>AZN-dən</span></div>
+      <p class="price-desc">Böyüməkdə olan bizneslər üçün tam həll.</p>
+      <ul class="price-features">
+        <li>Limitsiz səhifə</li>
+        <li>İnzibatçı paneli</li>
+        <li>Ödəniş inteqrasiyası</li>
+        <li>SEO optimallaşdırma</li>
+        <li>3 aylıq dəstək</li>
+        <li class="dim">Mobil tətbiq</li>
+      </ul>
+      <a href="#contact" class="price-cta">Başla →</a>
+    </div>
+
+    <div class="price-card">
+      <div class="price-tier">Premium</div>
+      <div class="price-amount">3000 <span>AZN-dən</span></div>
+      <p class="price-desc">Xüsusi sistem və mobil tətbiq tələb edən layihələr.</p>
+      <ul class="price-features">
+        <li>Xüsusi funksionallıq</li>
+        <li>iOS & Android tətbiq</li>
+        <li>API inteqrasiyası</li>
+        <li>6 aylıq dəstək</li>
+        <li>Prioritet dəstək</li>
+        <li>SLA zəmanəti</li>
+      </ul>
+      <a href="#contact" class="price-cta">Müzakirə edək →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:0">
+  <div class="section-label reveal">FAQ</div>
+  <h2 class="section-title reveal">Tez-tez soruşulan suallar</h2>
+
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <div class="faq-q">Sayt hazırlanması nə qədər vaxt aparır? <span class="icon">+</span></div>
+      <div class="faq-a">Sadə saytlar 3–5 iş günü, mürəkkəb layihələr 2–4 həftə ərzində tamamlanır. Görüş zamanı dəqiq müddəti razılaşdırırıq.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Saytın hostinqi kim ödəyir? <span class="icon">+</span></div>
+      <div class="faq-a">Hosting və domain xərcləri müştəri tərəfindən ödənilir. Sizə ən uyğun və əlçatan variantları tövsiyə edirik. Pulsuz hosting variantları da mövcuddur.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Saytı özüm idarə edə biləcəyəm? <span class="icon">+</span></div>
+      <div class="faq-a">Bəli. Hər layihəyə sadə idarəetmə paneli əlavə edirik ki, məzmunu özünüz yeniləyə biləsiniz. Ayrıca təlim də veririk.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ödəniş necə aparılır? <span class="icon">+</span></div>
+      <div class="faq-a">50% avans, 50% layihə tamamlandıqda. Bank köçürməsi və ya nağd ödəniş qəbul edilir.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Layihə bitdikdən sonra dəstək var mı? <span class="icon">+</span></div>
+      <div class="faq-a">Bəli. Hər paketdə müəyyən müddət pulsuz texniki dəstək daxildir. Daha uzun müddətli dəstək üçün aylıq plan da mövcuddur.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<div class="contact-section" id="contact">
+  <div class="contact-inner">
+    <div>
+      <div class="section-label reveal">Əlaqə</div>
+      <h2 class="section-title reveal">Layihənizi<br>müzakirə edək</h2>
+      <div class="contact-info reveal">
+        <div class="contact-item">
+          <div class="contact-item-label">Instagram</div>
+          <a href="https://instagram.com/recodeaz" class="contact-item-value">@recodeaz</a>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-label">E-poçt</div>
+          <a href="mailto:info@recodeaz.com" class="contact-item-value">info@recodeaz.com</a>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-label">Yerləşmə</div>
+          <div class="contact-item-value" style="cursor:default">Bakı, Azərbaycan</div>
+        </div>
+        <p class="contact-note">Formu doldurun və ya birbaşa Instagram-da DM yazın. 24 saat ərzində cavab veririk.</p>
+      </div>
+    </div>
+
+    <div class="contact-form reveal">
+      <div class="form-group">
+        <label class="form-label">Ad Soyad</label>
+        <input type="text" class="form-input" placeholder="Adınızı daxil edin">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon / E-poçt</label>
+        <input type="text" class="form-input" placeholder="+994 xx xxx xx xx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Xidmət növü</label>
+        <input type="text" class="form-input" placeholder="Sayt / Mobil tətbiq / E-ticarət">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Layihəniz haqqında</label>
+        <textarea class="form-textarea" placeholder="Biznesinizdən, tələblərinizden qısaca danışın..."></textarea>
+      </div>
+      <button class="form-submit" onclick="handleSubmit()">GÖNDƏR →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">© 2025 recodeaz · Bütün hüquqlar qorunur</div>
+  <div class="footer-logo"><span>{</span>re<span>}</span>codeaz</div>
+</footer>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx+'px'; cursor.style.top = my+'px'; });
+function animateRing() { rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12; ring.style.left = rx+'px'; ring.style.top = ry+'px'; requestAnimationFrame(animateRing); }
+animateRing();
+document.querySelectorAll('a, button, .faq-q').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width='14px'; cursor.style.height='14px'; ring.style.width='48px'; ring.style.height='48px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width='8px'; cursor.style.height='8px'; ring.style.width='32px'; ring.style.height='32px'; });
+});
+
+// Nav scroll
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 40); });
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// Form submit
+function handleSubmit() {
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = '✓ GÖNDƏRILDI';
+  btn.style.background = '#00cc66';
+  setTimeout(() => { btn.textContent = 'GÖNDƏR →'; btn.style.background = ''; }, 3000);
+}
+</script>
+</body>
+</html>
