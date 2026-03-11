@@ -887,7 +887,7 @@ footer {
         </div>
         <div class="contact-item">
           <div class="contact-item-label">E-poçt</div>
-          <a href="mailto:info@recodeaz.com" class="contact-item-value">recodeaz@gmail.com</a>
+          <a href="/cdn-cgi/l/email-protection#10797e767f506275737f7475716a3e737f7d" class="contact-item-value"><span class="__cf_email__" data-cfemail="5a283f39353e3f3b201a3d373b333674393537">[email&#160;protected]</span></a>
         </div>
         <div class="contact-item">
           <div class="contact-item-label">Yerləşmə</div>
@@ -914,7 +914,7 @@ footer {
         <label class="form-label">Layihəniz haqqında</label>
         <textarea class="form-textarea" placeholder="Biznesinizdən, tələblərinizden qısaca danışın..."></textarea>
       </div>
-      <button class="form-submit" onclick="handleSubmit()">GÖNDƏR →</button>
+      <button class="form-submit" id="submitBtn" onclick="handleSubmit()">GÖNDƏR →</button>
     </div>
   </div>
 </div>
@@ -925,7 +925,7 @@ footer {
   <div class="footer-logo"><span>{</span>re<span>}</span>codeaz</div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Custom cursor
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
@@ -965,11 +965,43 @@ document.querySelectorAll('.faq-q').forEach(q => {
 });
 
 // Form submit
-function handleSubmit() {
-  const btn = document.querySelector('.form-submit');
-  btn.textContent = '✓ GÖNDƏRILDI';
-  btn.style.background = '#00cc66';
-  setTimeout(() => { btn.textContent = 'GÖNDƏR →'; btn.style.background = ''; }, 3000);
+async function handleSubmit() {
+  const btn = document.getElementById('submitBtn');
+  const inputs = document.querySelectorAll('.form-input');
+  const name = inputs[0].value.trim();
+  const contact = inputs[1].value.trim();
+  const service = inputs[2].value.trim();
+  const message = document.querySelector('.form-textarea').value.trim();
+
+  if (!name || !contact) {
+    btn.textContent = '! AD VƏ ƏLAQƏ LAZIMDIR';
+    btn.style.background = '#ff4444';
+    setTimeout(() => { btn.textContent = 'GÖNDƏR →'; btn.style.background = ''; }, 2500);
+    return;
+  }
+
+  btn.textContent = 'GÖNDƏRİLİR...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://formspree.io/f/mdawggjr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, contact, service, message })
+    });
+    if (res.ok) {
+      btn.textContent = '✓ GÖNDƏRILDI';
+      btn.style.background = '#00cc66';
+      inputs.forEach(i => i.value = '');
+      document.querySelector('.form-textarea').value = '';
+    } else { throw new Error(); }
+  } catch {
+    btn.textContent = '✗ XƏTA — YENİDƏN CƏHD ET';
+    btn.style.background = '#ff4444';
+  }
+
+  btn.disabled = false;
+  setTimeout(() => { btn.textContent = 'GÖNDƏR →'; btn.style.background = ''; }, 3500);
 }
 </script>
 </body>
